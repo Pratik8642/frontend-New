@@ -2,14 +2,16 @@
 FROM node:22.11.0 AS build
 WORKDIR /app
 COPY . .
-RUN npm install --legacy-peer-deps
-RUN npm run build
+RUN npm install --legacy-peer-deps \
+  && npm run build \
+  && cp -r build server \
+  && cd server \
+  && npm install --legacy-peer-deps
 
-# Stage 2: Set up Express server with React build files
-FROM node:22.11.0 AS final
+
+# Stage 2: Rnunning the BFF Server
+FROM node:22-alpine AS final
 WORKDIR /server
-COPY server/ ./
-RUN npm install --legacy-peer-deps
-COPY --from=build /app/build ./build
+COPY --from=build /app/server .
 EXPOSE 5000
 CMD ["node", "index.js"]
